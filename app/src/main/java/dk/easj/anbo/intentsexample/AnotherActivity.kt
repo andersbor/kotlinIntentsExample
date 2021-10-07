@@ -1,18 +1,22 @@
 package dk.easj.anbo.intentsexample
 
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import dk.easj.anbo.intentsexample.databinding.ActivityAnotherBinding
 
 class AnotherActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAnotherBinding
-    private val pickContactsSubActivity = 2
+    // private val pickContactsSubActivity = 2 // for deprecated startActivityForResult
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,13 +55,6 @@ class AnotherActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        binding.contactsButton.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = ContactsContract.Contacts.CONTENT_TYPE
-            startActivityForResult(intent, pickContactsSubActivity)
-            // TODO https://stackoverflow.com/questions/62671106/onactivityresult-method-is-deprecated-what-is-the-alternative
-        }
-
         binding.emailButton.setOnClickListener {
             val emailIntent = Intent(
                 Intent.ACTION_SENDTO, Uri.fromParts(
@@ -71,10 +68,15 @@ class AnotherActivity : AppCompatActivity() {
             // Check if the device has an email client
             if (emailIntent.resolveActivity(packageManager) != null) {
                 // Prompt the user to select a mail app
-                startActivity(Intent.createChooser(emailIntent, "Choose your mail application"))
+                startActivity(
+                    Intent.createChooser(
+                        emailIntent,
+                        "Choose your mail application"
+                    )
+                )
             } else {
                 // Inform the user that no email clients are installed or provide an alternative
-                binding.choiceTextviewResult.text = "No email app on device"
+                binding.messageView.text = "No email app on device"
             }
         }
 
@@ -84,8 +86,40 @@ class AnotherActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        // https://stackoverflow.com/questions/66301361/android-choosing-the-right-settings-to-prepare-activityresultlauncher-for-picki
+        // https://proandroiddev.com/is-onactivityresult-deprecated-in-activity-results-api-lets-deep-dive-into-it-302d5cf6edd
+        val pickContactLauncher: ActivityResultLauncher<Void> =
+            registerForActivityResult(ActivityResultContracts.PickContact()) { uri: Uri ->
+                val c: Cursor? = contentResolver.query(uri, null, null, null, null)
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        val name =
+                            c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+                        Log.d("APPLE", "onActivityResult: $name")
+                        binding.messageView.text = name
+                        c.close()
+                    }
+                } else {
+                    binding.messageView.text = "No data"
+                }
+            }
+
+        binding.contactsButton.setOnClickListener {
+            pickContactLauncher.launch(null)
+        }
+
+        /* deprecate way of making starting a sub-activity which is expected to return data
+        binding.contactsButton.setOnClickListener {
+         val intent = Intent(Intent.ACTION_PICK)
+         intent.type = ContactsContract.Contacts.CONTENT_TYPE
+         startActivityForResult(intent, pickContactsSubActivity)
+         // TODO https://stackoverflow.com/questions/62671106/onactivityresult-method-is-deprecated-what-is-the-alternative
+         // TODO https://developer.android.com/training/basics/intents/result
+     }*/
+
     }
 
+    /* Deprecated way of getting data from a sub-activity
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_CANCELED) {
@@ -103,5 +137,5 @@ class AnotherActivity : AppCompatActivity() {
             }
             cursor.close()
         }
-    }
+    }*/
 }
