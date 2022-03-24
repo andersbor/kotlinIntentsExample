@@ -26,6 +26,14 @@ class MainActivity : AppCompatActivity() {
         binding.buttonToActivityWithParameter.setOnClickListener {
             val name: String = binding.editTextName.text.toString().trim()
             val ageStr: String = binding.editTextAge.text.trim().toString()
+            if (name.isEmpty()) {
+                binding.editTextName.error = "No name"
+                return@setOnClickListener
+            }
+            if (ageStr.isEmpty()) {
+                binding.editTextAge.error = "No age"
+                return@setOnClickListener
+            }
             val age = ageStr.toInt()
             val intent = Intent(this, ParametersActivity::class.java)
             intent.putExtra("NAME", name)

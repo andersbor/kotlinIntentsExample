@@ -1,5 +1,6 @@
 package dk.easj.anbo.intentsexample
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
@@ -12,12 +13,14 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import dk.easj.anbo.intentsexample.databinding.ActivityAnotherBinding
 
 class AnotherActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAnotherBinding
     // private val pickContactsSubActivity = 2 // for deprecated startActivityForResult
 
+    @SuppressLint("Range")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //setContentView(R.layout.activity_another)
@@ -76,7 +79,8 @@ class AnotherActivity : AppCompatActivity() {
                 )
             } else {
                 // Inform the user that no email clients are installed or provide an alternative
-                binding.messageView.text = "No email app on device"
+                // binding.messageView.text = "No email app on device"
+                Snackbar.make(it, "No email app on device", Snackbar.LENGTH_LONG).show()
             }
         }
 
