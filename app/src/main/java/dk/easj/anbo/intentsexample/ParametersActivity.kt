@@ -24,7 +24,5 @@ class ParametersActivity : AppCompatActivity() {
             finish()
             // return to previous Activity
         }
-
-        // TODO implicit intents
     }
 }
